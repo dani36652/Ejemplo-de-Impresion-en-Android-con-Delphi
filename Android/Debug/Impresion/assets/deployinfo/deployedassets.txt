@@ -1,0 +1,2 @@
+.\assets\internal\Ticket.html
+.\assets\internal\imagen.png

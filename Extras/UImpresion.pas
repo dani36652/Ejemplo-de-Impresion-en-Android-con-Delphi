@@ -64,7 +64,7 @@ uses
   end;
   {Las Librerías Androidx se Incluyen en Alexandria
   https://developer.android.com/reference/androidx/print/PrintHelper}
-  {$IFDEF VER350} //Delphi 11.0+ Alexandria
+  {$IF RTLVersion > 34.0} //Delphi 11.0
   [JavaSignature('androidx/print/PrintHelper')]
   {$ELSE}
   [JavaSignature('android/support/v4/print/PrintHelper')]
@@ -132,9 +132,10 @@ begin
 
 end;
 procedure TJOnWebViewListener.onPageFinished(view: JWebView; url: JString);
-var PrintManager:JPrintManager;
+var
+  PrintManager:JPrintManager;
 begin
- PrintManager:=TJPrintManager.Wrap((TAndroidHelper.Context.getSystemService(TJContext.JavaClass.PRINT_SERVICE)as ILocalObject).GetObjectID);
+ PrintManager:=TJPrintManager.Wrap((TAndroidHelper.Context.getSystemService(TJContext.JavaClass.PRINT_SERVICE) as ILocalObject).GetObjectID);
  PrintManager.print(StringToJString(NombreTrabajo), JPrintDocumentAdapter(View.createPrintDocumentAdapter), nil);
 end;
 procedure TJOnWebViewListener.onPageStarted(view: JWebView; url: JString;
@@ -167,80 +168,72 @@ procedure TJOnWebViewListener.onUnhandledKeyEvent(view: JWebView;
 begin
 
 end;
+
 function TJOnWebViewListener.shouldOverrideKeyEvent(view: JWebView;
   event: JKeyEvent): Boolean;
 begin
-result:=false;
+  result:=false;
 end;
+
 function TJOnWebViewListener.shouldOverrideUrlLoading(view: JWebView;
   url: JString): Boolean;
 begin
-result:=false;
+  result:=false;
 end;
 
-var mWebView:JWebView;
-WebClient:JWebClient;
-OnWebViewListener: TJOnWebViewListener;
+var
+  mWebView:JWebView;
+  WebClient:JWebClient;
+  OnWebViewListener: TJOnWebViewListener;
+
 function doWebViewPrint:boolean;
 begin
-result:=false;
- try
-  if not Assigned(mWebView)then mWebView:=TJWebView.JavaClass.init(TAndroidHelper.Context);
-  if not Assigned(WebClient)then WebClient:=TJWebClient.JavaClass.init;
-  if not Assigned(OnWebViewListener)then OnWebViewListener:=TJOnWebViewListener.Create;
- result:=true;
- except
- result:=false;
- end;
+  try
+    if not Assigned(mWebView) then
+      mWebView:= TJWebView.JavaClass.init(TAndroidHelper.Context);
+
+    if not Assigned(WebClient) then
+      WebClient:=TJWebClient.JavaClass.init;
+
+    if not Assigned(OnWebViewListener) then
+      OnWebViewListener:=TJOnWebViewListener.Create;
+
+    result:=true;
+  except
+    result:=false;
+  end;
 end;
 
 procedure ImprimirHTML(URL, NombreTrabajo: string);
 begin
- CallInUIThread(
- procedure
- begin
-  if doWebViewPrint then
+  CallInUIThread(
+  procedure
   begin
-  OnWebViewListener.NombreTrabajo := NombreTrabajo;
-  WebClient.SetWebViewListener(OnWebViewListener);
-  mWebView.setWebViewClient(WebClient);
-  mWebview.getSettings.setAllowFileAccess(true); //ANDROID NIVEL DE API 30+
-  mWebview.getSettings.setAllowFileAccessFromFileURLs(true); //ANDROID NIVEL DE API 30+
-  mWebView.loadUrl(StringToJString(URL));
-  end;
- end);
+    if doWebViewPrint then
+    begin
+      OnWebViewListener.NombreTrabajo := NombreTrabajo;
+      WebClient.SetWebViewListener(OnWebViewListener);
+      mWebView.setWebViewClient(WebClient);
+      mWebview.getSettings.setAllowFileAccess(true); //ANDROID NIVEL DE API 30+
+      mWebview.getSettings.setAllowFileAccessFromFileURLs(true); //ANDROID NIVEL DE API 30+
+      mWebView.loadUrl(StringToJString(URL));
+    end;
+  end);
 end;
 
 procedure ImprimirImagen(Ruta,NombreTrabajo:string);
-var Impresor: JPrintHelper;
-Uri:JNet_Uri;
-arch:JFile;
+var
+  Impresor: JPrintHelper;
+  Uri:JNet_Uri;
+  arch:JFile;
 begin
   if not TFile.Exists(Ruta) then
-  begin
-  ShowMessage('No hay imagen para imprimir');
-  end else
+    ShowMessage('No hay imagen para imprimir')
+  else
   begin
     arch:=TJFile.JavaClass.init(StringToJString(Ruta));
     arch.setReadable(true,false);
-    if TJBuild_VERSION.JavaClass.SDK_INT>=24 then //ANDROID 7.0+
-     begin
-     {Documentacion FileProvider:
-     https://developer.android.com/reference/androidx/core/content/FileProvider}
-     Uri:=
-     {$IFDEF VER350} //DELPHI 11 ALEXANDRIA
-     TJcontent_FileProvider.JavaClass.getUriForFile(TAndroidHelper.Context,
-     StringToJString(System.Concat(JStringToString(TAndroidHelper.Context.getPackageName),
-     '.fileprovider')),arch);
-     {$ELSE}        //DELPHI VERSIONES ANTERIORES (DAR MANTENIMIENTO CADA QUE SALGA UNA NUEVA)
-     TJFileProvider.JavaClass.getUriForFile(TAndroidHelper.Context,
-     StringToJString(System.Concat(JStringToString(TAndroidHelper.Context.getPackageName),
-     '.fileprovider')),arch);
-     {$ENDIF}
-     end else
-     begin
-     Uri:=TJnet_Uri.JavaClass.fromFile(arch);
-     end;
+    Uri:= TAndroidHelper.JFileToJURI(arch);
     Impresor := TJPrintHelper.JavaClass.init(TAndroidHelper.Context);
     Impresor.setScaleMode(TJPrintHelper.TJPrintHelper_SCALE_MODE_FIT);
     Impresor.setColorMode(TJPrintHelper.TJPrintHelper_COLOR_MODE_COLOR);
@@ -251,10 +244,7 @@ end;
 
 function VerificarSePuedeImprimir: boolean;
 begin
- if TJBuild_VERSION.JavaClass.SDK_INT>=23 then
- begin
- result:=true;
- end else result:=false;
+  Result:= TJBuild_VERSION.JavaClass.SDK_INT >= 23;
 end;
 
 procedure RegistrarTipos;

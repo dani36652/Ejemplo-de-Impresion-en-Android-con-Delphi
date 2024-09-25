@@ -17,6 +17,7 @@ object Form1: TForm1
     Size.PlatformDefault = False
     TabOrder = 1
     Text = 'Imprimir HTML'
+    TextSettings.Trimming = None
     OnClick = Button1Click
   end
   object Button2: TButton
@@ -28,6 +29,7 @@ object Form1: TForm1
     Size.PlatformDefault = False
     TabOrder = 2
     Text = 'Imprimir Imagen'
+    TextSettings.Trimming = None
     OnClick = Button2Click
   end
 end

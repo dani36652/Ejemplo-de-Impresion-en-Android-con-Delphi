@@ -32,16 +32,18 @@ procedure TForm1.Button1Click(Sender: TObject);
 begin
  if VerificarSePuedeImprimir then
   begin
-   ImprimirHTML(TPath.GetDocumentsPath+PathDelim+'Ticket.html', 'Impresion1');
+    ImprimirHTML(TPath.GetDocumentsPath+PathDelim+'Ticket.html', 'Impresion1');
+    Self.Invalidate;
   end else ShowMessage('No es posible imprimir');
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
 begin
- if VerificarSePuedeImprimir then
- begin
-  ImprimirImagen(TPath.GetDocumentsPath+PathDelim+'imagen.png','Impresion imagen');
- end else ShowMessage('No es posible imprimir');
+  if VerificarSePuedeImprimir then
+  begin
+    ImprimirImagen(TPath.GetDocumentsPath+PathDelim+'imagen.png','Impresion imagen');
+    Self.Invalidate;
+  end else ShowMessage('No es posible imprimir');
 end;
 
 end.
